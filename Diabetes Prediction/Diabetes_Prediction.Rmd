@@ -4,7 +4,7 @@ author: "by Tanishq Kaushik"
 output: html_document
 ---
 
-## Introductio 
+## Introduction 
 This project aims to revolutionize diabetes diagnosis using data science. 
 By meticulously preparing and analyzing health data, the project unveils vital insights. 
 It classifies individuals based on their BMI, uncovers demographic patterns, and highlights 

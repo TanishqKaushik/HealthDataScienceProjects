@@ -8,7 +8,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introductio
+## Introduction
 The Behavioral Risk Factor Surveillance System Survey is the nation's premier system of health-related telephone survey and consists of data of US citizens pertaining to their health-related risk behaviors, chronic health conditions, and use of preventative services. It was established in 1984 and today it collects data from all 50 states, DC and the three US territories. The survey entails interviews of more than 400,000 adults every year which makes it the largest continuously conducted health survey system in the world. Since it accumulates behavioral health risk data at the state and the local level, BRFSS has become a powerful tool for targeting and building heath promotion activities. 
 
 My analysis seeks to identify the target populations for physical health interventions. On completion this analysis should help us determine whether the interventions should differ across different demographics. The demographic that I am interested in for carrying out this analysis is sex.  

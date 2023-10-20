@@ -8,7 +8,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Introductio
+## Introduction
 Coronavirus disease (COVID-19) is an infectious disease caused by the SARS-CoV-2 virus. Globally there have been 759,408,703 confirmed cases of COVID-19 including 6,866,434 deaths, reported to WHO. Most people infected with the virus will experience mild to moderate respiratory illness and recover without requiring special treatment. However, some will become seriously ill and require medical attention. Older people and those with underlying medical conditions like cardiovascular disease, diabetes, chronic respiratory disease, or cancer are more likely to develop serious illness. Anyone can get sick with COVID-19 and become seriously ill or die at any age. People with covid can have a wide range of symptoms. These include fever or chills, cough, shortness of breath or difficulty breathing, fatigue, muscle or body aches, headache, new loss of taste or smell, sore throat, congestion or runny nose, nausea or vomiting, and diarrhea. Currently FDA authorized [treatments are available](https://aspr.hhs.gov/COVID-19/Treatments/Pages/Possible-Treatment-Options-for-COVID19.aspx) for people who are more likely to get sick from COVID-19 and can reduce chances of being hospitalyzed or dying from the disease. 
 
 In addition to basic health and hygiene practices, like handwashing, CDC recommends some prevention actions at all COVID-19 Community Levels, which include: 
