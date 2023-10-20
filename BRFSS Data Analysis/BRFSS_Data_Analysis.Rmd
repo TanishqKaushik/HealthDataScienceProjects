@@ -1,0 +1,107 @@
+---
+title: "Analysis to Check the Difference in Physical Health Between Males and Females Using BRFSS Survey"
+author: "by Tanishq Kaushik"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+The Behavioral Risk Factor Surveillance System Survey is the nation's premier system of health-related telephone survey and consists of data of US citizens pertaining to their health-related risk behaviors, chronic health conditions, and use of preventative services. It was established in 1984 and today it collects data from all 50 states, DC and the three US territories. The survey entails interviews of more than 400,000 adults every year which makes it the largest continuously conducted health survey system in the world. Since it accumulates behavioral health risk data at the state and the local level, BRFSS has become a powerful tool for targeting and building heath promotion activities. 
+
+My analysis seeks to identify the target populations for physical health interventions. On completion this analysis should help us determine whether the interventions should differ across different demographics. The demographic that I am interested in for carrying out this analysis is sex.  
+
+For carrying out the analysis I will be using the Health-related Quality of Life section form the survey. It has a column which measures the “Number of days physical health was not good” for participants from whom the this was asked: “Now thinking about your physical health, which includes physical illness and injury, how many days during the past 30 days was your physical health not good?”. The higher the number of days mentioned as an answer to the previous question, the lower their overall physical health would be. For my analysis I would be comparing whether the Number of Days Physical Health was Not Good is greater in males, compared to females. 
+
+This research is important to study as there might be a disparity in physical health between the two sexes, and this might call for specific interventions or health benefits to be added for the worse off group. This research would directly impact the population as the findings will affect the decisions made by healthcare providers and policy makes. Additionally, it will also affect the type of interventions used for patient care in an institutional setting. 
+ 
+## Data Cleaning & Exploratory Data Analysis
+
+For this analysis I am using a using a csv file which contains the survey data collected by BRFSS in the year 2010. It has 3260 observations spread across 397 variables. For the purpose of my research question, I have used the variables abbreviated as PHYSHLTH and SEX. The Don't Know/ Not sure, Refused and None values in the PHYSHLTH (The Number of Days Physical Health Not Good) were recoded to NA and the result was checked by running a summary function on the column. The SEX column was recoded in a new variable called SEX2 which was populated with Male and Female using 1 and 2 in the SEX column. A crosstab between SEX and SEX2 was created to check if the new variable was created properly. The mean of the PHYSHLTH after not considering the NA values was found to be 15 and the data consists of approximately 69% females and 31% males. 
+```{r, echo= FALSE, results='hide', message=FALSE, warning=FALSE}
+
+# Load packages
+library(dplyr)
+library(ggplot2)
+library(tidyverse)
+library(questionr)
+library(MASS)
+
+
+# Importing the files
+survey <- read.csv("BRFSS.csv")
+
+# Number of Observations
+nrow(survey)
+
+# Number of Variables
+ncol(survey)
+
+# Re-coding Don't Know/ Not sure, Refused and None to NA for PHYSHLTH
+survey <- mutate(survey, PHYSHLTH = ifelse(PHYSHLTH == 99| PHYSHLTH == 77 | PHYSHLTH == 88, NA, PHYSHLTH))
+
+# Looking at the Summary of PHYSHLTH to check if the mutate worked
+summary(survey$PHYSHLTH)
+
+# Creating a new variable SEX2 that recodes the sex column to male and female
+survey <- mutate(survey, SEX2 = ifelse(SEX == 1, "Male",
+                                               ifelse(SEX == 2, "Female", NA 
+                                               )))
+
+# Crosstab to make sure the variable was created properly
+table(survey$SEX,survey$SEX2)
+
+# Mean of the variable PHYSHLTH
+mean(survey$PHYSHLTH, na.rm=T)
+
+# Percentage of males and females in the data
+
+table <- table(survey$SEX2)
+proportions <- prop.table(table)
+print(proportions*100)
+
+
+```
+
+
+## Data Visualization 
+
+```{r, echo= FALSE, results='hide', message=FALSE, warning=FALSE}
+ggplot(data=survey) + aes(x=PHYSHLTH) +  geom_histogram()+
+   labs(title="Distribution of Number of Days Physical Health Not Good",x="Days", y = "Count") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+The histogram above represents the Distribution of Number of days Physical health was not Good out of 30. It's shape is ramdom and it's surprising to see that the more than 400 people were sick for the entirety of 30 days before the interview.
+
+```{r, echo= FALSE, results='hide', message=FALSE, warning=FALSE}
+ggplot(data=survey) + aes(x=SEX2, y=PHYSHLTH, fill=SEX2) +  geom_boxplot()+
+   labs(title="Number of Days Physical Health Not Good, by SEX",x="SEX",y ='Number of Days', fill="SEX") + theme(plot.title = element_text(hjust = 0.5))
+```
+
+The box plot above represents the 5 number summary of Number of Days Physical Health was Not Good according to the sexes. Here we can see that the there is no difference between the first and the third quartile when the two sexes are compared however, the median number of days for males are higher than the median number of days for females. 
+
+## Hypothesis Testing 
+
+For the testing my null hypothesis was that the mean Number of Days Physical Health Was Not Good between males and females is the same, my alternative hypothesis was that the mean Number of Days Physical Health Was Not Good is greater for males compared to females. My alpha or significance level is 0.05 and the kind of test I will be carrying out is an Upper-tailed test. On running the test I got a p-value of 0.1725.
+
+```{r, echo= FALSE, results='hide', message=FALSE, warning=FALSE}
+# Running hypothesis test
+with(survey, wilcox.test(x=PHYSHLTH[SEX2=="Male"], 
+                     y=PHYSHLTH[SEX2=="Female"],
+                     alternative = "greater"))
+```
+
+
+## Conclusion
+
+At a significance level of 0.05, we fail to reject the null hypothesis and conclude that there is NOT statistically significant evidence that the mean Number of Days Physical Health Was Not Good is greater for males than females. The health practitioners cannot use this data to make decisions since we did not find a statistically significant proof that there was a difference between males and females health. I was expecting the males to have a statistically greater mean since on looking at the boxplot I found that their median was higher. To expand on this research I could look at other variables as well such as alcohol consumption or had a fall in the past months to get a better understanding of differences between males and females so that health practitioners can make decisions accordingly. 
+
+
+
+
+
+
+
