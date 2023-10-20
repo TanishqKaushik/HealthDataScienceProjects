@@ -1,0 +1,134 @@
+---
+title: "Predicting Diabetes Diagnosis Using Logistic Regression"
+author: "by Tanishq Kaushik"
+output: html_document
+---
+
+## Introduction 
+This project aims to revolutionize diabetes diagnosis using data science. 
+By meticulously preparing and analyzing health data, the project unveils vital insights. 
+It classifies individuals based on their BMI, uncovers demographic patterns, and highlights 
+the influence of age, gender, and BMI on diabetes risk. This project empowers early intervention, potentially changing lives.
+
+## Data Cleaning/Preparation
+To start off I have first imported all the necessary libraries and the dataset for carrying out the analysis. I have converted the height to SI units in height.si column by multiplying heights by 0.0254. Then I have converted the weight to SI units in weight.si column by multiplying weights by 0.453592. Additionally, I have also created a BMI column using the formula BMI = (weight.si)/(height.si^2). Finally I have created and recoded columns for BMI, insurance, smoker, and included checks that show each of the new/recoded variables have been correctly coded.
+
+```{r warning=FALSE, message=FALSE, results="hide"}
+# Importing the necessary libraries
+library(Hmisc)
+library(dplyr)
+library(questionr)
+library(ggplot2)
+
+
+# Importing the files
+data <- read.csv("diabetes.csv")
+
+# Converting height variable to SI units
+data$height.si <- data$height*0.0254
+
+# Converting weight variable to SI units
+data$weight.si <- data$weight * 0.453592
+
+# Creating BMI variable using height.si and weight.si
+data$BMI <- data$weight.si / (data$height.si^2)
+
+# Creating a new variable bmi_categorized that re-codes the BMI column to different categories
+data <- mutate(data, bmi_categorized = ifelse(BMI < 18.5, "underweight",
+                                               ifelse(BMI >= 18.5 & BMI <= 25, "normal", 
+                                                      ifelse(BMI>= 25 & BMI <= 30, "overweight",
+                                                             ifelse(BMI >= 30,"obese", NA )))))
+# Creating a table for bmi_categorized
+table(data$bmi_categorized)
+
+# Recoding the int variable insurance to have char values 
+data <- mutate(data, insurance.chr = ifelse(insurance == 0, "none",
+                                               ifelse(insurance == 1, "government", 
+                                                      ifelse(insurance == 2, "private",NA))))
+
+# Cross tab to make sure the insurance.chr variable was created properly
+table(data$insurance,data$insurance.chr)
+
+# Recoding the int variable smoking to have char values 
+data <- mutate(data, smoking.chr = ifelse(smoking == 1, "current",
+                                               ifelse(smoking == 2, "never", 
+                                                      ifelse(smoking == 3, "ex-smoker",NA))))
+
+# Crosstab to make sure the smoking.chr variable was created properly
+table(data$smoking,data$smoking.chr)
+
+```
+
+
+## Exploratory Data Analysis
+The data set consists of 403 observations. Approximately 38.28% of individuals are obese, 58.06% of individuals are female, and 15.38% of individuals have diabetes. The average age in the dataset is 46.85 and the average BMI is 28.78.
+```{r warning=FALSE, message=FALSE, results="hide"}
+
+# Number of Observations
+nrow(data)
+
+# Percentage of observations in each category of bmi_categorized
+table <- table(data$bmi_categorized)
+proportions <- prop.table(table)
+print(proportions*100)
+
+# Percentage of observations in each category of gender
+table <- table(data$gender)
+proportions <- prop.table(table)
+print(proportions*100)
+
+# Percentage of observations in each category of diabetes
+table <- table(data$dm)
+proportions <- prop.table(table)
+print(proportions*100)
+
+# Average age of individuals in the dataset
+mean(data$age, na.rm=T)
+
+# Average BMI of individuals in the datset
+mean(data$BMI, na.rm=T)
+```
+
+
+## Data Visualization
+
+In this section I have plotted a few graphs to further understand the data. In fig. 1 I have plotted a barplot to show the frequency of each category of insurance variable. In the plot we can see that the highest number of people in the data set have a government insurance followed by private and none. In fig. 2 I have plotted a barplot to show the frequency of each category of smoking variable. In the plot we can see that the highest number of people in the data set have never smoked followed by current and ex-smokers. In fig. 3 I have generated a scatterplot to show a relationship between cholesterol and body mass index, in the plot we can see that there is a slight positive correlation between the two and their Pearson's correlation coefficient is 0.08593146. Finally, in fig. 4 I have generated a histogram of age variable using a bin width of 5 and we can see that it appears to be somewhat bimodal and right-skewed.
+```{r warning=FALSE, message=FALSE}
+
+# Barplot to show the frequency of each category of insurance variable
+ggplot(data=data) + aes(x=insurance.chr, fill=insurance.chr) + geom_bar()+
+   labs(title="Figure 1: Frequency of Different Insurance Types",x="Insurance Type", fill = "Insurance Type") + theme(plot.title = element_text(hjust = 0.5))
+
+# Barplot to show the frequency of each category of smoking variable
+ggplot(data=data) + aes(x=smoking.chr, fill=smoking.chr) + geom_bar()+
+   labs(title="Figure 2: Frequency of Different Smoker Types",x="Smoker Type", fill = "Smoker Type") + theme(plot.title = element_text(hjust = 0.5))
+
+# Scatterplot showing the realtionship between BMI and cholesterol 
+ggplot(data=data) + aes(x=BMI, y=chol) +  geom_smooth(method=lm) + geom_point() +
+   labs(title="Figure 3: Relationship Between Cholesterol and Body Mass Index",x="Body Mass Index (BMI)", y="Cholesterol") + theme(plot.title = element_text(hjust = 0.5))
+
+# Correlation coefficient for Body Mass Index and Cholesterol
+ cor.test(data$BMI, data$chol, method = "pearson", conf.level = 0.95)
+
+# Histogram of age variable using a binwidth of 5
+ggplot(data=data) + aes(x=age) + geom_histogram(fill="blue", color="orangered", binwidth = 5)+
+   labs(title="Figure 4: Distribution of Age",x="Age (In Years)") + theme(plot.title = element_text(hjust = 0.5))
+
+
+```
+
+## Logistic Regression Results
+On creating a logistic regression model with diabetes (dm) as the outcome variable, and age, gender, and BMI as the predictors we find that-
+
+* A 1-year increase in the age causes the log odds of having diabetes to increase by 0.055454, holding the other independent variables constant.
+* A 1-unit increase in the BMI causes the log odds of having diabetes to increase by 0.073879, holding the other independent variables constant.
+* A change in sex from someone who is female to someone who is male increases the natural log of the odds having diabetes by 0.244852, holding the other independent variables constant.
+
+```{r warning=FALSE, message=FALSE, results="hide"}
+# Fitting the model
+fit <- glm(dm ~ age + factor(gender) + BMI, data = data, family = "binomial")
+
+# Summary of the model
+summary(fit)
+```
+

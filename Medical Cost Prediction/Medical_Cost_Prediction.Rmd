@@ -1,0 +1,161 @@
+---
+title: "Predicting Individual Medical Costs Billed by Health Insurance Using Linear Regression"
+author: "by Tanishq Kaushik"
+output: html_document
+---
+
+## Introduction
+"The United States’ national health expenditure (NHE) grew 5.8% to $3.2 trillion in 2015 (i.e., $9,990 per person), which accounted for 17.8% of the nation’s gross domestic product (GDP). In seeking to control these unsustainable increases in healthcare costs, it is imperative that healthcare organizations can predict the likely future costs of individuals, so that care management resources can be efficiently targeted to those individuals at highest risk of incurring significant costs. Key stakeholders in these efforts to manage healthcare costs include health insurers, employers, society, and increasingly healthcare delivery organizations due to the transition from fee-for-service payment models to value-based payment models. For any given individual, insurers generally have the most comprehensive information on healthcare costs as they pay for care delivered across various healthcare delivery organizations.
+
+Predicting healthcare costs for individuals using accurate prediction models is important for various stakeholders beyond health insurers, and for various purposes. For health insurers and increasingly healthcare delivery systems, accurate forecasts of likely costs can help with general business planning in addition to prioritizing the allocation of scarce care management resources. Moreover, for patients, knowing in advance their likely expenditures for the next year could potentially allow them to choose insurance plans with appropriate deductibles and premiums."
+
+Excerpt from https://www-ncbi-nlm-nih-gov.proxy-um.researchport.umd.edu/pmc/articles/PMC5977561/
+
+## Exploratory Data Analysis
+The data set consists of 1338 observations spread out across 7 variables. Considering the categorical variables, in the sex variable males had a higher percentage of 50.52%, the number of children 0 had the highest percentage of 42.8998%, the not a smoker variable had the higher percentage of 79.52%, and the region variable southeast had the highest percent of 27.204%. 
+Considering the continuous variables Age had a mean of 39.207 and a standard deviation of 14.04996, Body mass index had a mean of 30.664 and a standard deviation of 6.098187, and charges had a mean of 13270.42 and a standard deviation of 12110.01.
+```{r warning=FALSE, message=FALSE, results="hide", include=FALSE}
+# Importing the files
+library(Hmisc)
+library(ggplot2)
+library(questionr)
+library(dplyr)
+records <- read.csv("insurance.csv")
+
+# Number of Observations
+nrow(records)
+
+# Number of Variables
+ncol(records)
+
+# Percentage of observations in each category of Sex
+table <- table(records$sex)
+proportions <- prop.table(table)
+print(proportions*100)
+
+# Changing the Number of Children variable to categorical 
+records$children <- as.factor(records$children)
+
+# Percentage of observations in each category of Number of Children
+table <- table(records$children)
+proportions <- prop.table(table)
+print(proportions*100)
+
+# Percentage of observations in each category of Smoker
+table <- table(records$smoker)
+proportions <- prop.table(table)
+print(proportions*100)
+
+# Percentage of observations in each category of region
+table <- table(records$region)
+proportions <- prop.table(table)
+print(proportions*100)
+
+# Mean and SD of Age
+mean(records$age, na.rm=T)
+sd(records$age, na.rm=T)
+
+# Mean and SD of bmi
+mean(records$bmi, na.rm=T)
+sd(records$bmi, na.rm=T)
+
+# Mean and SD of charges
+mean(records$charges, na.rm=T)
+sd(records$charges, na.rm=T)
+
+
+```
+
+## Data Visualization
+* In Figure 1 we can see that the medium charge is almost similar for males and females however the IQR is much larger for males when compared to females.In addition, we can also notice that outliers exist in both the cases
+
+* In Figure 2 we can see that the median charge is the highest for individuals who have 4 children followed by individuals with 3, 0, 2, 5 and 1 respectively. The IQR is the highest for individuals with 2 children and they all have outliers.
+
+* In Figure 3 we can see that the median charge is substantially higeher for individulas who smoke compared to people who did not smoke however, the boxplot for people who do not smoke seemed to be the only ones without outliers.
+
+* In Figure 4 we can see that the median charge is higher for northeast region compared to the other three regions that seem to have somewhat similar medians. All the regions seem to have outliers.
+
+* The scatterplot in Figure 5 shows a positive linear relationship between Age and Individual Medical costs billed by health insurance. 
+
+* The scatterplot in Figure 6 shows a positive linear relationship between Body Mass Index and Individual Medical costs billed by health insurance.
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+
+## Boxplot that shows the five-number summary of charge, across the categorical variable Sex
+ggplot(data=records) + aes(x=sex, y=charges, fill=sex) +  geom_boxplot()+
+   labs(title="Figure 1: Boxplot Distribution of medical costs, by sex",x="Sex", fill="Sex", y="Individual medical costs billed by health insurance") + theme(plot.title = element_text(hjust = 0.5))
+
+## Boxplot that shows the five-number summary of charge, across the categorical variable Number of Children
+ggplot(data=records) + aes(x=children, y=charges, fill=children) +  geom_boxplot()+
+   labs(title="Figure 2: Boxplot Distribution of medical costs, by number of children",x="Number of Children", fill="Number of Children", y="Individual medical costs billed by health insurance") + theme(plot.title = element_text(hjust = 0.5))
+
+## Boxplot that shows the five-number summary of charge, across the categorical variable Smoker
+ggplot(data=records) + aes(x=smoker, y=charges, fill=smoker) +  geom_boxplot()+
+   labs(title="Figure 3: Boxplot Distribution of medical costs, by whether the indivisual is smokes or not",x="Smoker", fill="Smoker", y="Individual medical costs billed by health insurance") + theme(plot.title = element_text(hjust = 0.5))
+
+## Boxplot that shows the five-number summary of charge, across the categorical variable Sex
+ggplot(data=records) + aes(x=region, y=charges, fill=region) +  geom_boxplot()+
+   labs(title="Figure 4: Boxplot Distribution of medical costs, by region",x="Region", fill="Region", y="Individual medical costs billed by health insurance") + theme(plot.title = element_text(hjust = 0.5))
+
+# Scatterplot Showing the Relationship Between Age and Medical Costs
+ggplot(data=records) + aes(x=age, y=charges) + geom_point() +  geom_smooth(method=lm) +
+   labs(title="Figure 5: Scatterplot Showing the Relationship Between Age and Medical Costs",x="Age (In Years)", y="Individual medical costs billed by health insurance") + theme(plot.title = element_text(hjust = 0.5))
+
+# Scatterplot Showing the Relationship Between bmi and Medical Costs
+ggplot(data=records) + aes(x=bmi, y=charges) + geom_point() +  geom_smooth(method=lm) +
+   labs(title="Figure 6: Scatterplot Showing the Relationship Between BMI and Medical Costs",x="Body mass index", y="Individual medical costs billed by health insurance") + theme(plot.title = element_text(hjust = 0.5))
+
+```
+
+
+## Multiple Linear Regression Results
+
+* For a 1 year increase in age, the Individual medical costs billed by health insurance increases by an average of 257.19 dollars, holding all other variables in the model constant.
+
+* For a 1 unit increase in bmi, the Individual medical costs billed by health insurance increases by an average of 336.91 dollars, holding all other variables in the model constant.
+
+* The Individual medical costs billed by health insurance is 128.16 dollars lower in males compared to females, holding all other variables in the model constant.
+
+* The Individual medical costs billed by health insurance is 23836.41 dollars higher for smokers compared to non-smokers, holding all other variables in the model constant. 
+
+* The Individual medical costs billed by health insurance is 390.98 dollars higher for people who have 1 child compared to people who do not have any children at all, holding all other variables in the model constant.
+
+* The Individual medical costs billed by health insurance is 1635.78 dollars higher for people who have 2 children compared to people who do not have any children at all, holding all other variables in the model constant.
+
+* The Individual medical costs billed by health insurance is 964.34 dollars higher for people who have 3 children compared to people who do not have any children at all, holding all other variables in the model constant.
+
+* The Individual medical costs billed by health insurance is 2947.37 dollars higher for people who have 4 children compared to people who do not have any children at all, holding all other variables in the model constant.
+
+* The Individual medical costs billed by health insurance is 1116.04 dollars higher for people who have 5 children compared to people who do not have any children at all, holding all other variables in the model constant.
+
+* The Individual medical costs billed by health insurance is 380.64 dollars lower for people who have live in northwest region compared to people who live in northeast region, holding all other variables in the model constant.
+
+* The Individual medical costs billed by health insurance is 1033.14 dollars lower for people who have live in southeast region compared to people who live in northeast region, holding all other variables in the model constant.
+
+* The Individual medical costs billed by health insurance is 952.89 dollars lower for people who have live in southwest region compared to people who live in northeast region, holding all other variables in the model constant.
+
+```{r warning=FALSE, message=FALSE, results="hide", include=FALSE}
+
+# Fitting the model
+fit <- lm(charges ~ age + bmi + factor(sex) + factor(children) + factor(smoker) + factor(region), data = records)
+
+# Summary of the model for interpretation
+summary(fit)
+
+```
+
+
+
+## Linear Regression Assumptions
+
+
+```{r warning=FALSE, message=FALSE, echo=FALSE}
+# Code for producing the diagnostic plots
+plot(fit)
+```
+
+**Linearity of Data-** The graph of Residuals vs Fitted is used to assess this assumption. This assumption is violated in this case since we don't have horizontal red line at approximately zero, and in addition, we have distinct patterns which indicate the absence of a linear relationship.
+
+**Normality of residuals-** The graph titled Normal Q-Q is used to examine this assumption. The assumption is violated since the residual points do not follow the straight dashed line. 
+
+**Homogeneity of residuals variance-** The graph titled Scale-Location is used to examine the homogeneity of residuals variance. This assumption is this case since the red line has a positive slope to it, and the data points are not randomly spread out.

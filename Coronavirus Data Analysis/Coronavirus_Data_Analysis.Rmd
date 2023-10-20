@@ -1,0 +1,120 @@
+---
+title: "Coronavirus Exploratory Data Analysis"
+author: "by Tanishq Kaushik"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+Coronavirus disease (COVID-19) is an infectious disease caused by the SARS-CoV-2 virus. Globally there have been 759,408,703 confirmed cases of COVID-19 including 6,866,434 deaths, reported to WHO. Most people infected with the virus will experience mild to moderate respiratory illness and recover without requiring special treatment. However, some will become seriously ill and require medical attention. Older people and those with underlying medical conditions like cardiovascular disease, diabetes, chronic respiratory disease, or cancer are more likely to develop serious illness. Anyone can get sick with COVID-19 and become seriously ill or die at any age. People with covid can have a wide range of symptoms. These include fever or chills, cough, shortness of breath or difficulty breathing, fatigue, muscle or body aches, headache, new loss of taste or smell, sore throat, congestion or runny nose, nausea or vomiting, and diarrhea. Currently FDA authorized [treatments are available](https://aspr.hhs.gov/COVID-19/Treatments/Pages/Possible-Treatment-Options-for-COVID19.aspx) for people who are more likely to get sick from COVID-19 and can reduce chances of being hospitalyzed or dying from the disease. 
+
+In addition to basic health and hygiene practices, like handwashing, CDC recommends some prevention actions at all COVID-19 Community Levels, which include: 
+
+* Staying Up to Date with COVID-19 Vaccines
+* Improving Ventilation
+* Getting Tested for COVID-19 If Needed
+* Following Recommendations for What to Do If You Have Been Exposed
+* Staying Home If You Have Suspected or Confirmed COVID-19
+* Seeking Treatment If You Have COVID-19 and Are at High Risk of Getting Very Sick
+* Avoiding Contact with People Who Have Suspected or Confirmed COVID-19
+
+
+## Data Cleaning/Preparation
+Two excel files were provided to me for analysis namely coronavirus.xlsx and comorbidity.xlsx. The first file consisted of information pertaining to all the patients along with a specific patient ID and the second file consisted of comorbidity information along with the specific patient ID. Both of there files were first imported and then merged into a single file called corona using the ID to only contain rows present in both the files. Then the age column in the merged file was updated to replace any age grater than or equal to 120 with NA values and the country name for Mainland China was changed to China.
+
+```{r results='hide', message=FALSE, warning=FALSE}
+# Load packages
+library(dplyr)
+library(readxl)
+
+# Importing the files
+coronavirus <- read_excel("coronavirus.xlsx", sheet = "patients")
+comorbid <- read_excel("comorbidity.xlsx", sheet = "disease")
+
+# Merging the two files
+corona <- inner_join(coronavirus, comorbid, by="ID")
+
+# Replacing age >= 120 with NA
+corona <- mutate(corona, Age = ifelse(Age >= 120, NA, Age))
+summary(corona$Age)
+
+# Recoding the values for Mainland China to China
+corona <- mutate(corona, Country = ifelse(Country == "Mainland China", "China", Country))
+
+```
+
+## Exploratory Data Analysis
+The dataset obtained after merging the two base files consisted of 1764 observations and 12 variables. 49.88% of the patients were females. The median age for of patients who tested positive for the virus was 28. The mean and the standard deviation for age of patients who died due to the virus was 28.39 and 15.92 respectively. Among the patients that tested positive for coronavirus 1.82% were from China, 0.45 percent were from italy, and 10.05% were from the US. Among the patients who had tested positive for coronavirus 3.88% had Heart Disease, 7.54% had HIV, 1.94% had Liver Disease, and 15.31% had Lupus. 
+
+
+```{r results='hide', message=FALSE, warning=FALSE}
+# Number of Observations
+nrow(corona)
+
+# Number of Variables
+ncol(corona)
+
+# Percentage of Female Patients
+females_only <- filter(corona, Sex == "F")
+percentage_females <- (nrow(females_only)/nrow(corona))*100
+print(percentage_females)
+
+# Median Age of Patients with Coronavirus, using na.rm = T to ignore the NA values
+tested_positive <- filter(corona, CoronaVirus == 1)
+median(tested_positive$Age, na.rm=T)
+
+# Mean Age and Standard Deviation of Patients who died from Coronavirus
+tested_positive_died <- filter(corona, CoronaVirus == 1, Death == 1)
+mean(tested_positive_died$Age, na.rm=T)
+sd(tested_positive_died$Age, na.rm=T)
+
+# Percentage of Patients with Coronavirus who are from China
+china_tested_positive <- filter(tested_positive, Country == "China")
+china_percent <- (nrow(china_tested_positive)/nrow(tested_positive))*100
+print(china_percent)
+
+# Percentage of Patients with Coronavirus who are from Italy
+italy_tested_positive <- filter(tested_positive, Country == "Italy")
+italy_percent <- (nrow(italy_tested_positive)/nrow(tested_positive))*100
+print(italy_percent)
+
+# Percentage of Patients with Coronavirus who are from the US
+US_tested_positive <- filter(tested_positive, Country == "US")
+US_percent <- (nrow(US_tested_positive)/nrow(tested_positive))*100
+print(US_percent)
+
+# Comorbidities (with percentages) associated with patients who have Coronavirus
+table <- table(tested_positive$Comorbidity)
+proportions <- prop.table(table)
+print(proportions*100)
+```
+
+
+## Data Visualization
+The boxplot below represents age by whether someone tested positive for coronavirus. In the plot 0 means a negative test result and 1 means a positive test result. In both the plots the minimum and maximum age of patients was 2 and 55 respectively. For the plot which represents the patients who tested positive the lower quartile is 15, the upper quartile is 43 and the median age is 28. On looking at the plots we can see that there seem to be no outliers. 
+
+
+```{r results='hide'}
+
+# Boxplot of Age by CoronaVirus
+plot <- boxplot(Age~CoronaVirus,data=corona, main="Coronavirus Data",
+   xlab="CoronaVirus 1-Positive, 0-Negative", ylab="Age in Years")
+# To obtain the exact values from the boxplot
+plot
+```
+
+## References
+
+World Health Organization. (n.d.). Coronavirus. World Health Organization. Retrieved March 13, 2023, from  [website](https://www.who.int/health-topics/coronavirus#tab=tab_1)
+
+Centers for Disease Control and Prevention. (n.d.). Symptoms of COVID-19. Centers for Disease Control and Prevention. Retrieved March 13, 2023, from [website](https://www.cdc.gov/coronavirus/2019-ncov/symptoms-testing/symptoms.html)
+
+Centers for Disease Control and Prevention. (n.d.). Covid-19 treatments and medications. Centers for Disease Control and Prevention. Retrieved March 13, 2023, from [website](https://www.cdc.gov/coronavirus/2019-ncov/your-health/treatments-for-severe-illness.html)
+
+Centers for Disease Control and Prevention. (n.d.). How to protect yourself and others. Centers for Disease Control and Prevention. Retrieved March 13, 2023, from [website](https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html#vaccines)
+
+World Health Organization. (n.d.). Who coronavirus (COVID-19) dashboard. World Health Organization. Retrieved March 13, 2023, from [website](https://covid19.who.int/)
+
